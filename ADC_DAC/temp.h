@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 void temp_init(void);
-uint8_t temp_get(uint16_t);
+double temp_get(void);
 uint16_t temp_adc_get(void);
 
 #endif

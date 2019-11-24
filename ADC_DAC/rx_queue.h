@@ -1,9 +1,8 @@
 #ifndef RX_QUEUE_H
 #define RX_QUEUE_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define MAX 30
 
