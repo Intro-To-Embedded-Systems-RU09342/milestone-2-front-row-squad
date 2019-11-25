@@ -7,7 +7,7 @@ int RED=0;              //initialize RED variable
 int GREEN=0;            //initialize GREEN variable
 int BLUE=0;             //initialize BLUE variable
 
-Rs3.14159v=3.3(read/1024)
+v=3.3(read/1024);
 float temp_Vreg= 9.3162(andrew)-39.5;
 int Tmp_keep;
 
