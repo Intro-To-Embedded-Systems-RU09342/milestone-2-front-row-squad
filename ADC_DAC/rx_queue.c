@@ -1,4 +1,12 @@
-//rx_queue.h - array instance of a queue used for received sreial commands
+/*
+ * rx_queue.c
+ *
+ * Queue data structure for storing received characters
+ *
+ * Created: 11/7/19
+ * Last Edited: 12/1/19
+ * Author: Andrew Hollabaugh
+ */
 
 #include "rx_queue.h"
 

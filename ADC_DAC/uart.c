@@ -1,14 +1,25 @@
+/*
+ * uart.c
+ *
+ * Functionality for transmitting and receiving data over uart
+ *
+ * Created: 11/7/19
+ * Last Edited: 12/1/19
+ * Author: Andrew Hollabaugh
+ */
+
 #include "uart.h"
 #include "rx_queue.h"
 #include "fan.h"
 #include "main.h"
 
-#define CMD_BUFFER_LENGTH 8
+//command characters
 #define SET_TEMP_CMD 'T'
 #define SET_FAN_CMD 'F'
 
-char cmd[CMD_BUFFER_LENGTH];
-uint8_t cmd_len = 0;
+#define CMD_BUFFER_LENGTH 8 //max length of command array
+char cmd[CMD_BUFFER_LENGTH]; //array to store receieved command in
+uint8_t cmd_len = 0; //length of command array
 
 void uart_init()
 {
@@ -42,71 +53,73 @@ void uart_init()
     UCA0IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
 }
 
+//transmits a byte
 void uart_tx(char data)
 {
-    while(!(UCA0IFG & UCTXIFG));
+    while(!(UCA0IFG & UCTXIFG)); //wait for tx buffer to be ready
     UCA0TXBUF = data; //put byte in transmission buffer
 }
 
+//transmits a string
 void uart_tx_str(const char *str)
 {
-    while(*str != '\0')
+    while(*str != '\0') //loop until end of string
     {
-        while(!(UCA0IFG & UCTXIFG));
-        UCA0TXBUF = *str;
+        while(!(UCA0IFG & UCTXIFG)); //wait for tx buffer to be ready
+        UCA0TXBUF = *str; //put current byte in transmission buffer
 
-        if(*str == '\n')
+        if(*str == '\n') //transmit \r if byte is \n
         {
             while(!(UCA0IFG & UCTXIFG));
             UCA0TXBUF = '\r';
         }
-        str++;
+        str++; //go to next byte
     }
 }
 
+//transmits an integer in decmial format
 void uart_tx_num(uint32_t num)
 {
     char num_str[10] = "";
     uint8_t i = 0;
-    if(num == 0)
+    if(num == 0) //special case for zero
     {
         num_str[0] = '0';
         i++;
     }
     else
     {
-        while(num > 0)
+        while(num > 0) //loop until all digits of num are processed
         {
-            num_str[i] = num % 10 + '0';
-            num /= 10;
+            num_str[i] = num % 10 + '0'; //add rightmost digit of num to the string
+            num /= 10; //remove rightmost digit
             i++;
         }
     }
 
     char num_str_rev[10] = "";
     uint8_t j = 0;
-    while(j <= i)
+    while(j <= i) //reverse the string
     {
         num_str_rev[j] = num_str[i-j-1];
         j++;
     }
-    num_str_rev[i] = '\0';
-    uart_tx_str(num_str_rev);
+    num_str_rev[i] = '\0'; //add end of string character
+    uart_tx_str(num_str_rev); //transmit the string
 }
 
+//check the uart_rx queue for characters that were sent and start execution sequence
 void uart_rx_check_queue()
 {
     if(!rx_queue_is_empty())
-        uart_rx_add_char_to_cmd(rx_queue_pop());
+        uart_rx_add_char_to_cmd(rx_queue_pop()); //remove character from queue and execute it
 }
 
+//adds the char to the command array; command is terminated at \n
 void uart_rx_add_char_to_cmd(char c)
 {
     if(c != '\n') //add normal char
     {
-        //if(cmd_len >= CMD_BUFFER_LENGTH)
-            //uart_tx(0xff);
-        //else
         cmd[cmd_len++] = c;
     }
     else if(cmd_len > 0) //newline is received; terminate command and execute
@@ -124,12 +137,13 @@ void uart_rx_execute_cmd()
 {
 }
 
+//executes commands that have an argument after converting argument to an integer
 void uart_rx_execute_cmd_with_arg()
 {
     uint16_t arg = 0;
     uint8_t arg_len = cmd_len - 1;
 
-    //Does place value math on each arg char, and adds to arg int
+    //does place value math on each arg char, and adds to arg int
     for(uint8_t i = 1; i <= arg_len; i++)
     {
         uint8_t exp_factor = arg_len - i;
@@ -139,6 +153,7 @@ void uart_rx_execute_cmd_with_arg()
         arg += (cmd[i]-'0') * mul_factor;
     }
 
+    //execute command based on first char of command array
     if(cmd[0] == SET_TEMP_CMD)
         fan_set_auto(arg);
     else if(cmd[0] == SET_FAN_CMD)
@@ -158,14 +173,10 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
   {
     case USCI_NONE: break;
     case USCI_UART_UCRXIFG:
+        //push received characters to the rx_queue
         if(!rx_queue_is_full())
             rx_queue_push(UCA0RXBUF);
         break;
-      /*while(!(UCA0IFG&UCTXIFG));
-      UCA0TXBUF = UCA0RXBUF;
-      __no_operation();*/
-      break;
-
     case USCI_UART_UCTXIFG: break;
     case USCI_UART_UCSTTIFG: break;
     case USCI_UART_UCTXCPTIFG: break;

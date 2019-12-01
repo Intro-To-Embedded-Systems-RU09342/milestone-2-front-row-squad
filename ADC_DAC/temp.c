@@ -1,13 +1,26 @@
+/*
+ * temp.c
+ *
+ * Uses ADC12 to read voltage on thermistor voltage divider; does math to get temperature
+ *
+ * Created: 11/7/19
+ * Last Edited: 12/1/19
+ * Author: Andrew Hollabaugh
+ */
+
 #include "temp.h"
 #include "uart.h"
 
 #define MAX_ADC_VAL 4095.0
 #define MAX_VOLTAGE 3.3
+
+//from ThermisterTTC103.xlsx voltage vs. temperature graph
 #define VOLTS_TO_TEMP_LINEAR_FACTOR 9.31618
 #define VOLTS_TO_TEMP_CONST -39.5
 
 volatile uint16_t adc_val = 0;
 
+//sets up ADC
 void temp_init()
 {
     P8SEL0 |= 0x01; //enable ADC on P8.4, A7
@@ -19,11 +32,13 @@ void temp_init()
     ADC12CTL0 |= ADC12SC; //start conversion
 }
 
+//get raw value from ADC, for debug
 uint16_t temp_adc_get()
 {
     return adc_val;
 }
 
+//get temperature in mili degrees C
 double temp_get()
 {
     double voltage = adc_val / MAX_ADC_VAL * MAX_VOLTAGE;
