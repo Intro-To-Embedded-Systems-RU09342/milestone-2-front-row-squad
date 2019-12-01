@@ -3,7 +3,7 @@
 #include "fan.h"
 #include "main.h"
 
-#define CMD_BUFFER_LENGTH 5
+#define CMD_BUFFER_LENGTH 8
 #define SET_TEMP_CMD 'T'
 #define SET_FAN_CMD 'F'
 
@@ -90,7 +90,7 @@ void uart_tx_num(uint32_t num)
         num_str_rev[j] = num_str[i-j-1];
         j++;
     }
-    num_str_rev[i] = '\n';
+    num_str_rev[i] = '\0';
     uart_tx_str(num_str_rev);
 }
 
@@ -140,9 +140,9 @@ void uart_rx_execute_cmd_with_arg()
     }
 
     if(cmd[0] == SET_TEMP_CMD)
-        set_temp(arg);
+        fan_set_auto(arg);
     else if(cmd[0] == SET_FAN_CMD)
-        fan_set(arg);
+        fan_set_manual(arg);
 }
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
