@@ -1,7 +1,7 @@
 GCC_DIR =  /opt/ti/mspgcc/bin
 SUPPORT_FILE_DIRECTORY = /opt/ti/mspgcc/include
 
-DEVICE  = msp430g2253
+DEVICE  = msp430fr6989
 CC      = $(GCC_DIR)/msp430-elf-gcc
 GDB     = $(GCC_DIR)/msp430-elf-gdb
 OBJCOPY = $(GCC_DIR)/msp430-elf-objcopy
